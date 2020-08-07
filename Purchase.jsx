@@ -12,14 +12,33 @@ const api = {
   }
 }
 
+enum PurchaseResult {
+	NONE,
+  SUCCESS,
+  ERROR
+}
 
 class Purchase extends React.Component {
+	state = {
+  	outcome: PurchaseResult.NONE
+  };
+  
+	async purchase() {
+  	try {
+    	await api.purchase();
+      this.setState({ outcome: PurchaseResult.SUCCESS });
+    } catch (err) {
+    	this.setState({ outcome: PurchaseResult.ERROR });
+    }
+  }
+  
   render() {
+  	const { outcome } = this.state;
     return (
       <div>
-        <button>Purchase</button>
-        <p className="successText">Purchase completed!</p>
-        <p className="errorText">An error occurred!</p>
+        <button onClick={this.purchase}>Purchase</button>
+        { outcome === PurchaseResult.SUCCESS && <p className="successText">Purchase completed!</p> }
+        { outcome === PurchaseResult.ERROR && <p className="errorText">An error occurred!</p> }
       </div>
     )
   }

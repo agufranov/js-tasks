@@ -16,11 +16,31 @@ const expensiveCalculation = {
 
 /* ---------- edit below this line ---------------- */
 
+function memoisePromise(promiseFn, timeout) {
+	let cache = {};
+  
+  return function(arg) {
+  	if (
+    	!cache[arg] ||
+      !cache[arg].promise ||
+      (Date.now() - cache[arg].lastExecTime) > timeout
+    ) {
+    	cache[arg] = {
+      	lastExecTime: Date.now(),
+        promise: promiseFn.call(this, arg)
+      }
+    }
+    return cache[arg].promise;
+  }
+}
+
+const memoizedCalc = memoisePromise(expensiveCalculation.calculateData).bind(expensiveCalculation);
+
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`)
   const param = url.searchParams.get('query_param')
 
-  const result = await expensiveCalculation.calculateData(param)
+  const result = await memoizedCalc(param)
   res.write(`${result}`)
   res.end()
 }).listen(5000)
